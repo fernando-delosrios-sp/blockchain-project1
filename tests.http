@@ -1,0 +1,83 @@
+# Download https://marketplace.visualstudio.com/items?itemName=humao.rest-client to make the test calls directly from this file
+# Add bitcoin.conf file contents to your wallet config file in order to enable RPC calls with the current configuration
+
+@starsUrl = http://localhost:8000
+@walletName = Udacity
+@walletUrl = http://localhost:18332
+
+### getWalletAddress
+# @name walletAddress
+POST {{walletUrl}}/wallet/{{walletName}}
+Authorization: Basic udacity:btcdev
+
+{
+    "jsonrpc": "1.0",
+    "method": "getnewaddress",
+    "params": ["Star registration", "legacy"]
+}
+
+### genesisBlock
+# @name genesisBlock
+GET {{starsUrl}}/block/height/0
+
+### requestValidation
+# @name plainMessage
+POST {{starsUrl}}/requestValidation
+Content-Type: application/json
+
+{
+    "address" : "{{walletAddress.response.body.result}}"
+}
+
+### signMessage
+# @name signedMessage
+POST {{walletUrl}}/wallet/{{walletName}}
+Authorization: Basic udacity:btcdev
+
+{
+    "jsonrpc": "1.0",
+    "method": "signmessage",
+    "params": ["{{walletAddress.response.body.result}}", "{{plainMessage.response.body.message}}"]
+}
+
+### submitStar1
+# @name submitStar1
+POST {{starsUrl}}/submitStar
+Content-Type: application/json
+
+{
+    "address": "{{walletAddress.response.body.result}}",
+    "signature": "{{signedMessage.response.body.result}}",
+    "message": "{{plainMessage.response.body.message}}",
+    "star": {
+        "dec": "68° 52' 56.9",
+        "ra": "16h 29m 1.0s",
+        "story": "My beautiful star 1"
+    }
+
+}
+
+### submitStar2
+# @name submitStar2
+POST {{starsUrl}}/submitStar
+Content-Type: application/json
+
+{
+    "address": "{{walletAddress.response.body.result}}",
+    "signature": "{{signedMessage.response.body.result}}",
+    "message": "{{plainMessage.response.body.message}}",
+    "star": {
+        "dec": "38° 57' 67.0",
+        "ra": "20h 25m 1.0s",
+        "story": "My beautiful star 2"
+    }
+
+}
+
+### myStars
+# @name myStars
+GET {{starsUrl}}/blocks/{{walletAddress.response.body.result}}
+
+### validateChain
+# @name validateChain
+GET {{starsUrl}}/validate
